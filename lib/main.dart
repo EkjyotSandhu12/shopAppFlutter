@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/pages/products_detail_page.dart';
+import 'package:shop_app/pages/cart_page.dart';
 
+
+import 'package:shop_app/pages/products_detail_page.dart';
 import '../providers/products_provider.dart';
 import './pages/product_overview_page.dart';
+import 'models/cart.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,11 +14,24 @@ void main() {
 
 class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
-    return  ChangeNotifierProvider(
-      create: (_) => ProductsProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => ProductsProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => Cart(),
+        )
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          primaryTextTheme: const TextTheme(
+            headline1: TextStyle(
+              fontSize: 14,
+              color: Colors.white,
+            )
+          ),
           fontFamily: "Lato",
           colorScheme: const ColorScheme.light(
             primary:  Color.fromRGBO(127, 82, 131, 1),
@@ -40,9 +56,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
         title: "Shop App Material widget",
-        home: ProductOverviewPage(),
         routes: {
+          "/" : (_) => ProductOverviewPage(),
           ProductDetailsPage.routeName : (_) => ProductDetailsPage(),
+          CartPage.routeName: (_) => CartPage(),
         },
       ),
     );
