@@ -23,7 +23,7 @@ class ProductsProvider with ChangeNotifier {
     Product(
       id: 'p3',
       title: 'Yellow Scarf',
-      description: 'Warm and cozy - exactly what you need for the winter.',
+      description: 'Warm and cozy - exactly what you need for the winter ',
       price: 19.99,
       imageUrl:
           'https://live.staticflickr.com/4043/4438260868_cc79b3369d_z.jpg',
@@ -38,6 +38,9 @@ class ProductsProvider with ChangeNotifier {
     ),
   ];
 
+  String getImage(String id){
+    return _items.firstWhere((element) => element.id == id).imageUrl;
+  }
 
   List<Product> get getItems {
       return [..._items];
@@ -48,4 +51,5 @@ class ProductsProvider with ChangeNotifier {
     _items.add(item);
     notifyListeners();
   }
+
 }

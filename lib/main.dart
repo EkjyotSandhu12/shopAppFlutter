@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/pages/cart_page.dart';
+import 'package:shop_app/pages/order_page.dart';
 
-
-import 'package:shop_app/pages/products_detail_page.dart';
+import './pages/cart_page.dart';
+import './pages/products_detail_page.dart';
 import '../providers/products_provider.dart';
 import './pages/product_overview_page.dart';
-import 'models/cart.dart';
+import './models/cart.dart';
+import './models/order.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,6 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => Orders(),
+        ),
         ChangeNotifierProvider(
           create: (_) => ProductsProvider(),
         ),
@@ -55,11 +59,13 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
+        initialRoute: ProductOverviewPage.routeName,
         title: "Shop App Material widget",
         routes: {
-          "/" : (_) => ProductOverviewPage(),
+          ProductOverviewPage.routeName : (_) => ProductOverviewPage(),
           ProductDetailsPage.routeName : (_) => ProductDetailsPage(),
           CartPage.routeName: (_) => CartPage(),
+          OrderPage.routeName: (_) => OrderPage(),
         },
       ),
     );

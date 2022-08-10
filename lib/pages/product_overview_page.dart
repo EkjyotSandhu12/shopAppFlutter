@@ -1,15 +1,23 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/providers/products_provider.dart';
+import 'package:shop_app/random_data_generator.dart';
 import 'package:shop_app/widgets/badge.dart';
+import 'package:shop_app/widgets/side_drawer.dart';
 
 import '../models/cart.dart';
+import '../models/product.dart';
 import '../widgets/product_item.dart';
 import 'cart_page.dart';
 
 bool showFavourite = false;
 
 class ProductOverviewPage extends StatefulWidget {
+
+  static String routeName = "/ProductOverviewPage";
+
   @override
   State<ProductOverviewPage> createState() => _ProductOverviewPageState();
 }
@@ -23,6 +31,20 @@ class _ProductOverviewPageState extends State<ProductOverviewPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            onPressed: () {
+              for (int i = 0; i < 4; i++) {
+                  ProductData.addProduct = Product(
+                    id: (Random().nextInt(123456) + Random().nextInt(123456)).toString(),
+                    title: RandomData.randomTitle(),
+                    description: "",
+                    imageUrl: RandomData.randomUrl(),
+                    price: Random().nextInt(10000).toDouble(),
+                  );
+              }
+            },
+            icon: Text("data"),
+          ),
           PopupMenuButton(
             onSelected: (value) {
               setState(() {
@@ -73,6 +95,7 @@ class _ProductOverviewPageState extends State<ProductOverviewPage> {
           child: ProductItem(),
         ),
       ),
+      drawer: sideDrawer(),
     );
   }
 }

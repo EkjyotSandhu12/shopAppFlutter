@@ -50,6 +50,10 @@ class ProductItem extends StatelessWidget {
           child: Image.network(
             product.imageUrl,
             fit: BoxFit.cover,
+            errorBuilder:
+                (BuildContext context, Object exception, StackTrace? stackTrace) {
+              return const Text("messy Url");
+            },
           ),
         ),
       ),
