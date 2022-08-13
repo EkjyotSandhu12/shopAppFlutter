@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop_app/pages/order_page.dart';
+import 'package:shop_app/pages/user_product_page.dart';
 
 import '../pages/product_overview_page.dart';
 
@@ -22,13 +23,13 @@ class sideDrawer extends StatelessWidget {
             automaticallyImplyLeading: false,
           ),
           Divider(
-              thickness: 8,
+              thickness: 1,
               height: 0,
               color: Theme.of(context).colorScheme.background),
           Container(
-            color: Theme.of(context).colorScheme.primary,
+            color: Colors.white,
             child: ListTile(
-              title: Text("Home"),
+              title: Text("Home", style: TextStyle(color: Colors.black),),
               leading: Icon(Icons.home),
               onTap: () {
                 Navigator.of(context)
@@ -40,12 +41,25 @@ class sideDrawer extends StatelessWidget {
             height: 1,
           ),
           Container(
-            color: Theme.of(context).colorScheme.primary,
+            color: Colors.white,
             child: ListTile(
-              title: Text("Orders"),
+              title: Text("Orders", style: TextStyle(color: Colors.black),),
               leading: Icon(Icons.shop),
               onTap: () {
                 Navigator.of(context).pushReplacementNamed(OrderPage.routeName);
+              },
+            ),
+          ),
+          Divider(
+            height: 1,
+          ),
+          Container(
+            color: Colors.white,
+            child: ListTile(
+              title: Text("Manage Product", style: TextStyle(color: Colors.black),),
+              leading: Icon(Icons.settings),
+              onTap: () {
+                Navigator.of(context).pushReplacementNamed(UserProductPage.routeName);
               },
             ),
           )

@@ -42,7 +42,7 @@ class _OrderItemState extends State<OrderItem> {
             ),
             subtitle: Text("Total Products: ${widget.orderItem.items.length}"),
             trailing: IconButton(
-              icon: Icon(Icons.expand_more),
+              icon: _expanded ? Icon(Icons.expand_less) : Icon(Icons.expand_more),
               onPressed: () {
                 setState(
                       () {
@@ -55,8 +55,8 @@ class _OrderItemState extends State<OrderItem> {
           Divider(),
           if (_expanded)
             Container(
-                padding: const EdgeInsets.all(15.0),
-                height: min(widget.orderItem.items.length * 35, 200),
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                height: min(widget.orderItem.items.length * 30, 200),
                 child: ListView.builder(
                   itemCount: widget.orderItem.items.length,
                   itemBuilder: (_, index) =>

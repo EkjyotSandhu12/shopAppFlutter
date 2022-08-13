@@ -34,10 +34,13 @@ class CartPage extends StatelessWidget {
                         ),
                         backgroundColor: Theme.of(context).colorScheme.primary),
                     Spacer(),
-                    TextButton(onPressed: () {
-                      Provider.of<Orders>(context, listen: false).addOrderItem(list, cart.totalSum);
-                      cart.emptyCart();
-                    }, child: Text(" ORDER ")),
+                    TextButton(
+                        onPressed: () {
+                          Provider.of<Orders>(context, listen: false)
+                              .addOrderItem(list, cart.totalSum);
+                          cart.emptyCart();
+                        },
+                        child: Text(" ORDER ")),
                   ],
                 ),
               ),
@@ -48,6 +51,27 @@ class CartPage extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: cart.itemCount,
                   itemBuilder: (_, index) => Dismissible(
+                    confirmDismiss: (DismissDirection) {
+                      return showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text("Are you Sure?"),
+                          content: Text("LIKIE SURE? SURE?"),
+                          actions: [
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop(true);
+                                },
+                                child: Text("yes")),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop(false);
+                                },
+                                child: Text("no")),
+                          ],
+                        ),
+                      );
+                    },
                     onDismissed: (_) {
                       cart.removeCartItem = list[index];
                     },

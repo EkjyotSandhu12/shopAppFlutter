@@ -11,7 +11,7 @@ class CartItem {
 
   CartItem({
     required this.id,
-    required this.productId,
+    required this.productId, // we are using this to find the cartItem in the list
     required this.title,
     required this.quantity,
     required this.price,
@@ -53,6 +53,15 @@ class Cart with ChangeNotifier {
   void emptyCart(){
     _items.clear();
     notifyListeners();
+  }
+
+  void removeOneQuantity(String id){
+    final cartItem = _items.firstWhere((element) => element.productId == id);
+    if(cartItem.quantity == 1) {
+      removeCartItem = cartItem;
+    }else{
+      cartItem.quantity--;
+    }
   }
 
   void addItem(

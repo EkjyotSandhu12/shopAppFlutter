@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../models/cart.dart';
 import '../models/product.dart';
-import '../pages/products_detail_page.dart';
-import '../providers/products_provider.dart';
 
 class ProductItem extends StatelessWidget {
 
@@ -24,8 +22,9 @@ class ProductItem extends StatelessWidget {
             title: Text(
               product.title,
               textAlign: TextAlign.center,
-              softWrap: true,
+              overflow: TextOverflow.ellipsis,
               maxLines: 3,
+              textScaleFactor: 0.88,
             ),
             backgroundColor: Theme.of(context).colorScheme.background,
             leading: Consumer<Product>(
@@ -41,7 +40,19 @@ class ProductItem extends StatelessWidget {
             ),
             trailing: IconButton(
               onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 cart.addItem(product.id, product.price, product.title);
+                SnackBar sb = SnackBar(
+                  content: const Text("Item Added To Cart"),
+                  duration: const Duration(seconds: 2),
+                  action: SnackBarAction(
+                    label: "Undo",
+                    onPressed: (){
+                      cart.removeOneQuantity(product.id);
+                    },
+                  ),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(sb);
               },
               icon: const Icon(Icons.shopping_cart),
               color: Theme.of(context).colorScheme.secondary,
