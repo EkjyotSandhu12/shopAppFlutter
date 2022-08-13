@@ -4,6 +4,7 @@ import 'package:shop_app/providers/products_provider.dart';
 import 'package:shop_app/widgets/user_product_item.dart';
 
 import '../widgets/side_drawer.dart';
+import 'AddOrEdit_product_page.dart';
 
 class UserProductPage extends StatelessWidget {
   static String routeName = "/UserProductPage";
@@ -16,7 +17,9 @@ class UserProductPage extends StatelessWidget {
         title: Text("Manage Product"),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, AddOrEditProductPage.routeName);
+            },
             icon: Icon(Icons.add),
           )
         ],

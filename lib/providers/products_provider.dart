@@ -52,4 +52,13 @@ class ProductsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool contains(Product p){
+   return _items.contains(p);
+  }
+
+  set deleteProduct(Product item){
+    _items.remove(item);
+    notifyListeners();
+  }
+
 }
