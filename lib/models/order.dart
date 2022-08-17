@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shop_app/models/http_url.dart';
 
 import '../models/cart.dart';
 
@@ -23,14 +27,68 @@ class Orders with ChangeNotifier {
     return [..._orders];
   }
 
-  void addOrderItem(List<CartItem> cartProducts, double totalAmount) {
-    _orders.insert(
+  Future<void> fetchOrder() async {
+    List<Order> fetchedList = [];
+    try {
+    final url = HttpUrl.orderUrl + ".json";
+
+    final response = await http.get(Uri.parse(url));
+
+      final responseData = json.decode(response.body) == null ? {} : json.decode(response.body) as Map;
+
+      responseData.forEach((key, value) {
+        fetchedList.add(Order(
+          id: key,
+          dateTime: DateTime.parse(value['dateTime']),
+          totalAmount: value['totalAmount'],
+          items: (value['cartItems'] as List).map((e) {
+            return CartItem(
+                id: e['id'],
+                productId: e['productId'],
+                title: e['title'],
+                quantity: e['quantity'],
+                price: e['price']);
+          }).toList(),
+        ));
+      });
+    } finally {
+      _orders = fetchedList;
+      notifyListeners();
+    }
+
+
+  }
+
+  Future<void> addOrderItem(List<CartItem> cartProducts, double totalAmount) {
+    final url = HttpUrl.orderUrl;
+
+    List<Map<String, dynamic>> cartItems = [];
+
+    for (int i = 0; i < cartProducts.length; i++) {
+      Map<String, dynamic> item = {};
+      item['productId'] = cartProducts[i].productId;
+      item['title'] = cartProducts[i].title;
+      item['quantity'] = cartProducts[i].quantity;
+      item['price'] = cartProducts[i].price;
+      item['id'] = cartProducts[i].id;
+      cartItems.add(item);
+    }
+
+    Map<String, dynamic> productMap = {};
+    return http.post(Uri.parse(url + ".json"),
+        body: json.encode({
+          'dateTime': DateTime.now().toIso8601String(),
+          'totalAmount': totalAmount,
+          'cartItems': cartItems
+        }));
+
+  /*  _orders.insert(
       0,
       Order(
           dateTime: DateTime.now(),
           id: DateTime.now().toString(),
           items: cartProducts,
           totalAmount: totalAmount),
-    );
+    );*/
   }
 }

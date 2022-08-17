@@ -15,7 +15,6 @@ import 'cart_page.dart';
 bool showFavourite = false;
 
 class ProductOverviewPage extends StatefulWidget {
-
   static String routeName = "/ProductOverviewPage";
 
   @override
@@ -23,6 +22,22 @@ class ProductOverviewPage extends StatefulWidget {
 }
 
 class _ProductOverviewPageState extends State<ProductOverviewPage> {
+  bool dataLoaded = false;
+
+  @override
+  void initState() {
+    Provider.of<Cart>(context, listen: false).fetchCart();
+    Provider.of<ProductsProvider>(context, listen: false)
+        .fetchItems()
+        .then((_) {
+      dataLoaded = true;
+    }).catchError((_) {
+      setState(() {
+        dataLoaded = true;
+      });
+    });
+  }
+
   Widget build(BuildContext context) {
     final ProductData = Provider.of<ProductsProvider>(context);
     final products = showFavourite
@@ -34,13 +49,14 @@ class _ProductOverviewPageState extends State<ProductOverviewPage> {
           IconButton(
             onPressed: () {
               for (int i = 0; i < 4; i++) {
-                  ProductData.addProduct = Product(
-                    id: (Random().nextInt(123456) + Random().nextInt(123456)).toString(),
-                    title: RandomData.randomTitle(),
-                    description: "",
-                    imageUrl: RandomData.randomUrl(),
-                    price: Random().nextInt(10000).toDouble(),
-                  );
+                ProductData.addProduct(Product(
+                  id: (Random().nextInt(123456) + Random().nextInt(123456))
+                      .toString(),
+                  title: RandomData.randomTitle(),
+                  description: "",
+                  imageUrl: RandomData.randomUrl(),
+                  price: Random().nextInt(10000).toDouble(),
+                ));
               }
             },
             icon: Text("data"),
@@ -81,20 +97,37 @@ class _ProductOverviewPageState extends State<ProductOverviewPage> {
         ],
         title: Text("Shop App"),
       ),
-      body: GridView.builder(
-        itemCount: products.length,
-        padding: EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3 / 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemBuilder: (_, index) => ChangeNotifierProvider.value(
-          value: products[index],
-          child: ProductItem(),
-        ),
-      ),
+      body: !dataLoaded
+          ? Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: () {
+                Provider.of<Cart>(context, listen: false).fetchCart();
+                return Provider.of<ProductsProvider>(context, listen: false)
+                    .fetchItems()
+                    .then((_) {
+                  dataLoaded = true;
+                });
+              },
+              child: ProductData.getItems.isEmpty
+                  ? Center(
+                      child: Text("There are No items in the Shop"),
+                    )
+                  : GridView.builder(
+                      itemCount: products.length,
+                      padding: EdgeInsets.all(8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 3 / 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemBuilder: (_, index) => ChangeNotifierProvider.value(
+                        value: products[index],
+                        child: ProductItem(),
+                      ),
+                    ),
+            ),
       drawer: sideDrawer(),
     );
   }

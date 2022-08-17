@@ -26,7 +26,7 @@ class UserProductPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: ListView.builder(
+        child: products.isEmpty ? Center(child: Text("Add some Products")) : ListView.builder(
           itemCount: products.length,
           itemBuilder: (_, index) => ChangeNotifierProvider.value(
             value: products[index],

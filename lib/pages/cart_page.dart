@@ -5,8 +5,21 @@ import '../models/cart.dart';
 import '../models/order.dart';
 import '../widgets/cart_item.dart' as cartWidget;
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   static String routeName = '/Cartpage';
+
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    Provider.of<Cart>(context, listen: false).fetchCart().catchError((e) {});
+  }
 
   Widget build(BuildContext context) {
     final cart = Provider.of<Cart>(context);
@@ -34,68 +47,88 @@ class CartPage extends StatelessWidget {
                         ),
                         backgroundColor: Theme.of(context).colorScheme.primary),
                     Spacer(),
-                    TextButton(
-                        onPressed: () {
-                          Provider.of<Orders>(context, listen: false)
+                    isLoading ? CircularProgressIndicator() : TextButton(
+                        onPressed: list.isEmpty? null : () async {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          await Provider.of<Orders>(context, listen: false)
                               .addOrderItem(list, cart.totalSum);
-                          cart.emptyCart();
+                         await cart.emptyCart();
+                          setState(() {
+                            isLoading = false;
+                          });
+                          showDialog(context: context, builder: (ctx) => AlertDialog(
+                            title: Text("Order has been placed"),
+                            actions: [TextButton(
+                              child: Text("ok"),
+                              onPressed: (){
+                                Navigator.of(ctx).pop();
+                              },
+                            )],
+                          ));
                         },
                         child: Text(" ORDER ")),
                   ],
                 ),
               ),
             ),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                child: ListView.builder(
-                  itemCount: cart.itemCount,
-                  itemBuilder: (_, index) => Dismissible(
-                    confirmDismiss: (DismissDirection) {
-                      return showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text("Are you Sure?"),
-                          content: Text("LIKIE SURE? SURE?"),
-                          actions: [
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.of(ctx).pop(true);
-                                },
-                                child: Text("yes")),
-                            TextButton(
-                                onPressed: () {
-                                  Navigator.of(ctx).pop(false);
-                                },
-                                child: Text("no")),
-                          ],
+            list.isEmpty
+                ? Center(
+                    child: Text("Add Some Item To the Cart"),
+                  )
+                : Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 5),
+                      child: ListView.builder(
+                        itemCount: cart.itemCount,
+                        itemBuilder: (_, index) => Dismissible(
+                          confirmDismiss: (DismissDirection) {
+                            return showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: Text("Are you Sure?"),
+                                content: Text("LIKIE SURE? SURE?"),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(ctx).pop(true);
+                                      },
+                                      child: Text("yes")),
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(ctx).pop(false);
+                                      },
+                                      child: Text("no")),
+                                ],
+                              ),
+                            );
+                          },
+                          onDismissed: (_) {
+                            cart.removeCartItem(list[index]);
+                          },
+                          direction: DismissDirection.endToStart,
+                          key: ValueKey(list[index].id),
+                          background: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(5)),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: const Icon(Icons.delete_forever),
+                          ),
+                          child: cartWidget.CartItem(
+                            cartId: list[index].id,
+                            title: list[index].title,
+                            price: list[index].price,
+                            productId: list[index].productId,
+                            quantity: list[index].quantity,
+                          ),
                         ),
-                      );
-                    },
-                    onDismissed: (_) {
-                      cart.removeCartItem = list[index];
-                    },
-                    direction: DismissDirection.endToStart,
-                    key: ValueKey(list[index].id),
-                    background: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(5)),
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: const Icon(Icons.delete_forever),
-                    ),
-                    child: cartWidget.CartItem(
-                      cartId: list[index].id,
-                      title: list[index].title,
-                      price: list[index].price,
-                      productId: list[index].productId,
-                      quantity: list[index].quantity,
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

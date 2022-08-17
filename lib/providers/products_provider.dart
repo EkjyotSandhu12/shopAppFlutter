@@ -1,9 +1,14 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../models/customException.dart';
 import '../models/product.dart';
 
 class ProductsProvider with ChangeNotifier {
   List<Product> _items = [
+    /*
     Product(
       id: 'p1',
       title: 'Red Shirt',
@@ -35,30 +40,90 @@ class ProductsProvider with ChangeNotifier {
       price: 49.99,
       imageUrl:
           'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Cast-Iron-Pan.jpg/1024px-Cast-Iron-Pan.jpg',
-    ),
+    ),*/
   ];
 
-  String getImage(String id){
+  String getImage(String id) {
     return _items.firstWhere((element) => element.id == id).imageUrl;
   }
 
   List<Product> get getItems {
-      return [..._items];
+    return [..._items];
+  }
+
+  Future<void> fetchItems() async {
+    List<Product> fetchedList = [];
+    try {
+      final url =
+          "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json";
+      final response = await http.get(Uri.parse(url));
+
+      final responseData = json.decode(response.body) == null ? {} : json.decode(response.body) as Map<String, dynamic>;
+
+      responseData.forEach((key, value) {
+        fetchedList.add(Product(
+          id: key,
+          title: value['title'],
+          description: value['description'],
+          imageUrl: value['image'],
+          price: value['price'],
+          isFavorite: value['isFavourite'],
+        ));
+      });
+    } finally {
+      notifyListeners();
+      _items = fetchedList;
     }
-
-
-  set addProduct(Product item) {
-    _items.add(item);
-    notifyListeners();
   }
 
-  bool contains(Product p){
-   return _items.contains(p);
+  Future<void> addProduct(Product item) async {
+    final url =
+        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json";
+    await http
+        .post(
+      Uri.parse(url),
+      body: json.encode({
+        'title': item.title,
+        'description': item.description,
+        'image': item.imageUrl,
+        'price': item.price,
+        'isFavourite': item.isFavorite,
+      }),
+    )
+        .then((value) {
+      item.id = json.decode(value.body)['name'];
+      _items.add(item);
+      notifyListeners();
+    });
   }
 
-  set deleteProduct(Product item){
-    _items.remove(item);
-    notifyListeners();
+  Future<void> updateProduct(Product item) async {
+    final url =
+        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product/${item.id}.json";
+    http.patch(Uri.parse(url),
+        body: json.encode({
+          'title': item.title,
+          'description': item.description,
+          'image': item.imageUrl,
+          'price': item.price,
+        }));
   }
 
+  bool contains(Product p) {
+    return _items.contains(p);
+  }
+
+  Future<void> deleteProduct(Product item) {
+    final url =
+        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product/${item.id}.json";
+
+    return http.delete(Uri.parse(url)).then((response) {
+      if (response.statusCode >= 400) {
+        throw customException("Deleting Failed");
+      } else {
+        fetchItems();
+        notifyListeners();
+      }
+    });
+  }
 }
