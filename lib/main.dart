@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
 import 'package:shop_app/pages/AddOrEdit_product_page.dart';
+import 'package:shop_app/pages/auth_screen.dart';
 import 'package:shop_app/pages/order_page.dart';
 import 'package:shop_app/pages/user_product_page.dart';
 
@@ -11,24 +11,29 @@ import './pages/cart_page.dart';
 import './pages/product_overview_page.dart';
 import './pages/products_detail_page.dart';
 import '../providers/products_provider.dart';
+import 'models/auth.dart';
 
 void main() {
-
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  Auth auth = Auth();
+
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return provider.MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => Orders(),
+        provider.ChangeNotifierProvider.value(
+          value: auth,
         ),
-        ChangeNotifierProvider(
-          create: (_) => ProductsProvider(),
+        provider.ChangeNotifierProvider(
+          create: (_) => ProductsProvider(auth),
         ),
-        ChangeNotifierProvider(
-          create: (_) => Cart(),
+        provider.ChangeNotifierProvider(
+          create: (_) => Orders(auth),
+        ),
+        provider.ChangeNotifierProvider(
+          create: (_) => Cart(auth),
         )
       ],
       child: MaterialApp(
@@ -58,9 +63,28 @@ class MyApp extends StatelessWidget {
             bodyText1: TextStyle(fontFamily: "Anton", color: Colors.white),
           ),
         ),
-        initialRoute: ProductOverviewPage.routeName,
+        home: auth.isAuth()
+            ? ProductOverviewPage()
+            : FutureBuilder(
+                future: auth.tryAutoLogin(),
+                builder: (context, futureData) {
+                  if (futureData.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: Text("loading"),
+                    );
+                  } else if (futureData.hasError) {
+                    print(futureData.error.toString());
+                    return AuthScreen();
+                  } else {
+                    return  futureData.data == true
+                        ? ProductOverviewPage()
+                        : AuthScreen();
+                  }
+                },
+              ),
         title: "Shop App Material widget",
         routes: {
+          AuthScreen.routeName: (_) => AuthScreen(),
           ProductOverviewPage.routeName: (_) => ProductOverviewPage(),
           ProductDetailsPage.routeName: (_) => ProductDetailsPage(),
           CartPage.routeName: (_) => CartPage(),

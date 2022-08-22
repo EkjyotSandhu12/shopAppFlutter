@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
+import '../models/auth.dart';
 import '../models/cart.dart';
 import '../models/product.dart';
 
@@ -11,6 +12,8 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     Product product = Provider.of<Product>(context, listen: false);
     Cart cart = Provider.of<Cart>(context, listen: false);
+    Auth auth = Provider.of<Auth>(context, listen: false);
+
     return ClipRRect(
       borderRadius: BorderRadius.all(Radius.circular(10)),
       child: GestureDetector(
@@ -30,7 +33,7 @@ class ProductItem extends StatelessWidget {
             leading: Consumer<Product>(
               builder: (_, product, child) => IconButton(
                 onPressed: () {
-                  product.setToggleFavourite();
+                  product.setToggleFavourite(auth.userId, auth.tokenKey);
                 },
                 icon: product.isFavorite
                     ? const Icon(Icons.favorite_outlined)

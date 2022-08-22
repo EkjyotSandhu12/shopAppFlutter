@@ -51,7 +51,6 @@ class RandomData {
     "Husky",
     "Loud",
     "Melodic",
-    "Moaning",
     "Mute",
     "Noisy",
     "Purring",

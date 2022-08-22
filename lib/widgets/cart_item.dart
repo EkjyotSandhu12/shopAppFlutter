@@ -49,6 +49,7 @@ class CartItem extends StatelessWidget {
             TextButton(
               onPressed: () {
                 cart.removeQuantity = cartId;
+                print(cartId);
               },
               style: TextButton.styleFrom(
                 minimumSize: Size.zero,

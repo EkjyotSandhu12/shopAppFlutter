@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shop_app/models/http_url.dart';
 
 import '../models/cart.dart';
+import 'auth.dart';
 
 class Order {
   String id;
@@ -23,14 +24,19 @@ class Order {
 class Orders with ChangeNotifier {
   List<Order> _orders = [];
 
+  final Auth authObject;
+
+  Orders(this.authObject);
+
   List<Order> get orders {
     return [..._orders];
   }
 
   Future<void> fetchOrder() async {
+
     List<Order> fetchedList = [];
     try {
-    final url = HttpUrl.orderUrl + ".json";
+    final url = HttpUrl.orderUrl + '.json?auth=${authObject.tokenKey}&orderBy="userId"&equalTo="${authObject.userId}"';
 
     final response = await http.get(Uri.parse(url));
 
@@ -75,8 +81,9 @@ class Orders with ChangeNotifier {
     }
 
     Map<String, dynamic> productMap = {};
-    return http.post(Uri.parse(url + ".json"),
+    return http.post(Uri.parse(url + ".json?auth=${authObject.tokenKey}"),
         body: json.encode({
+          'userId' : authObject.userId,
           'dateTime': DateTime.now().toIso8601String(),
           'totalAmount': totalAmount,
           'cartItems': cartItems

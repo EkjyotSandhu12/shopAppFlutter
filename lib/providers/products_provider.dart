@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/auth.dart';
 import '../models/customException.dart';
 import '../models/product.dart';
 
@@ -43,22 +44,49 @@ class ProductsProvider with ChangeNotifier {
     ),*/
   ];
 
+  Auth authObject;
+
+  ProductsProvider(this.authObject);
+
   String getImage(String id) {
     return _items.firstWhere((element) => element.id == id).imageUrl;
   }
 
   List<Product> get getItems {
+
     return [..._items];
+  }
+
+  Future<List<Product>> getPersonalProduct() async {
+
+    List<Product> fetchedList = [];
+
+    final url = 'https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json?auth=${authObject.tokenKey}&orderBy="userId"&equalTo="${authObject.userId}"';
+
+    final response = await http.get(Uri.parse(url));
+    final resposeData = json.decode(response.body) as Map;
+
+    _items.forEach((element) {
+      if(resposeData.containsKey(element.id)) {
+        fetchedList.add(element);
+      }
+    });
+
+    return fetchedList;
   }
 
   Future<void> fetchItems() async {
     List<Product> fetchedList = [];
     try {
-      final url =
-          "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json";
+       var url =
+          "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json?auth=${authObject.tokenKey}";
       final response = await http.get(Uri.parse(url));
 
       final responseData = json.decode(response.body) == null ? {} : json.decode(response.body) as Map<String, dynamic>;
+
+      url = "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/${authObject.userId}/userFav.json?auth=${authObject.tokenKey}";
+      final userResponse = await http.get(Uri.parse(url));
+      final userResponseData = json.decode(userResponse.body) == null ? {} : json.decode(userResponse.body) as Map<String, dynamic>;
 
       responseData.forEach((key, value) {
         fetchedList.add(Product(
@@ -67,9 +95,11 @@ class ProductsProvider with ChangeNotifier {
           description: value['description'],
           imageUrl: value['image'],
           price: value['price'],
-          isFavorite: value['isFavourite'],
+          isFavorite: userResponseData[key] == null ? false : userResponseData[key]['isFavourite'],
         ));
       });
+    }catch(e){
+      print(e.toString());
     } finally {
       notifyListeners();
       _items = fetchedList;
@@ -78,19 +108,20 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> addProduct(Product item) async {
     final url =
-        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json";
+        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product.json?auth=${authObject.tokenKey}";
     await http
         .post(
       Uri.parse(url),
       body: json.encode({
+        'userId' : authObject.userId,
         'title': item.title,
         'description': item.description,
         'image': item.imageUrl,
         'price': item.price,
-        'isFavourite': item.isFavorite,
       }),
     )
         .then((value) {
+          print(json.decode(value.body)['name']);
       item.id = json.decode(value.body)['name'];
       _items.add(item);
       notifyListeners();
@@ -99,7 +130,7 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> updateProduct(Product item) async {
     final url =
-        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product/${item.id}.json";
+        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product/${item.id}.json?auth=${authObject.tokenKey}";
     http.patch(Uri.parse(url),
         body: json.encode({
           'title': item.title,
@@ -107,6 +138,7 @@ class ProductsProvider with ChangeNotifier {
           'image': item.imageUrl,
           'price': item.price,
         }));
+    notifyListeners();
   }
 
   bool contains(Product p) {
@@ -115,14 +147,13 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> deleteProduct(Product item) {
     final url =
-        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product/${item.id}.json";
+        "https://flutter-shop-app-4f901-default-rtdb.firebaseio.com/product/${item.id}.json?auth=${authObject.tokenKey}";
 
     return http.delete(Uri.parse(url)).then((response) {
       if (response.statusCode >= 400) {
         throw customException("Deleting Failed");
       } else {
         fetchItems();
-        notifyListeners();
       }
     });
   }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shop_app/pages/order_page.dart';
 import 'package:shop_app/pages/user_product_page.dart';
+import 'package:provider/provider.dart';
 
+import '../models/auth.dart';
+import '../pages/auth_screen.dart';
 import '../pages/product_overview_page.dart';
 
 class sideDrawer extends StatelessWidget {
@@ -60,6 +63,17 @@ class sideDrawer extends StatelessWidget {
               leading: Icon(Icons.settings),
               onTap: () {
                 Navigator.of(context).pushReplacementNamed(UserProductPage.routeName);
+              },
+            ),
+          ),
+          Container(
+            color: Colors.white,
+            child: ListTile(
+              title: Text("Log Out", style: TextStyle(color: Colors.black),),
+              leading: Icon(Icons.exit_to_app),
+              onTap: () {
+                Navigator.of(context).pushNamed(AuthScreen.routeName);
+                Provider.of<Auth>(context, listen: false).logout();
               },
             ),
           )

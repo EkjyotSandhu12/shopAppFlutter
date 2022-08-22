@@ -13,7 +13,6 @@ class OrderPage extends StatefulWidget {
 }
 
 class _OrderPageState extends State<OrderPage> {
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -37,7 +36,7 @@ class _OrderPageState extends State<OrderPage> {
               } else {
                 return provider.Consumer<Orders>(
                   builder: (context, orderData, child) {
-                    return ListView(
+                    return orderData.orders.isEmpty? Center(child: Text("No Orders Placed..")) : ListView(
                       children: [
                         ...orderData.orders
                             .map(

@@ -3,14 +3,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'auth.dart';
 import 'http_url.dart';
 
 class CartItem {
-  final String id;
-  final String productId;
-  final String title;
-  int quantity;
-  final double price;
+   String id;
+   String productId;
+   String title;
+   int quantity;
+   double price;
 
   CartItem({
     required this.id,
@@ -24,6 +25,10 @@ class CartItem {
 class Cart with ChangeNotifier {
   List<CartItem> _items = [];
 
+  final Auth authObject;
+
+  Cart(this.authObject);
+
   List<CartItem> get items {
     return [..._items];
   }
@@ -34,12 +39,17 @@ class Cart with ChangeNotifier {
     selectedCartItem.quantity--;
     if (selectedCartItem.quantity == 0) {
       removeCartItem(selectedCartItem);
+    }else if(selectedCartItem.quantity > 1){
+      http.patch(Uri.parse(HttpUrl.cartUrl + "/${cartId}.json?auth=${authObject.tokenKey}"),
+          body: json.encode({
+            'quantity': selectedCartItem.quantity,
+          }));
     }
     notifyListeners();
   }
 
     removeCartItem(CartItem object)  {
-     http.delete(Uri.parse(HttpUrl.cartUrl + "/${object.id}.json"));
+     http.delete(Uri.parse(HttpUrl.cartUrl + "/${object.id}.json?auth=${authObject.tokenKey}"));
     _items.remove(object);
     notifyListeners();
   }
@@ -58,7 +68,7 @@ class Cart with ChangeNotifier {
 
   Future<void> emptyCart() async {
 
-    await http.delete(Uri.parse(HttpUrl.cartUrl + ".json"));
+    await http.delete(Uri.parse(HttpUrl.cartUrl + ".json?auth=${authObject.tokenKey}"));
 
     _items.clear();
     notifyListeners();
@@ -66,11 +76,14 @@ class Cart with ChangeNotifier {
 
   void removeOneQuantity(String id) {
     final cartItem = _items.firstWhere((element) => element.productId == id);
+    print(cartItem.quantity);
     if (cartItem.quantity == 1) {
       removeCartItem(cartItem);
-    } else {
+    } else if(cartItem.quantity > 1){
+      print("cartItem.quantity");
       cartItem.quantity--;
-      http.patch(Uri.parse(HttpUrl.cartUrl + "/${id}.json"),
+      print(cartItem.quantity);
+      http.patch(Uri.parse(HttpUrl.cartUrl + "/${id}.json?auth=${authObject.tokenKey}"),
           body: json.encode({
             'quantity': cartItem.quantity,
           }));
@@ -81,12 +94,12 @@ class Cart with ChangeNotifier {
 
     List<CartItem> fetchedList = [];
 
-    final respose = await http.get(Uri.parse(HttpUrl.cartUrl + ".json"));
+    final respose = await http.get(Uri.parse(HttpUrl.cartUrl + '.json?auth=${authObject.tokenKey}&orderBy="userId"&equalTo="${authObject.userId}"'));
 
-    if(respose.body == "null") return;
+    if(json.decode(respose.body) == null) return;
+
 
     final fetchedData = json.decode(respose.body) as Map<String, dynamic>;
-
 
 
     fetchedData.forEach((key, value) {
@@ -119,18 +132,22 @@ class Cart with ChangeNotifier {
 
     if (_items.contains(item)) {
       item.quantity++;
-      http.patch(Uri.parse(HttpUrl.cartUrl + "/${item.id}.json"),
+      http.patch(Uri.parse(HttpUrl.cartUrl + "/${item.id}.json?auth=${authObject.tokenKey}"),
           body: json.encode({'quantity': item.quantity}));
     } else {
-      _items.add(item);
-      http.post(Uri.parse(HttpUrl.cartUrl + ".json"),
+
+      http.post(Uri.parse(HttpUrl.cartUrl + ".json?auth=${authObject.tokenKey}"),
           body: json.encode({
+            'userId' : authObject.userId,
             'productId': item.productId,
             'title': item.title,
             'quantity': item.quantity,
             'price': item.price,
-          }));
-
+          })).then((value) {
+            print(json.decode(value.body));
+            item.id = json.decode(value.body)['name'];
+      });
+      _items.add(item);
       notifyListeners();
     }
   }
